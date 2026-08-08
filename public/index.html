@@ -14,18 +14,18 @@
         "colors": {
                 "secondary-fixed": "#fce26c",
                 "on-error": "#690005",
-                "outline-variant": "#3f4941",
+                "outline-variant": "#154c32",
                 "on-primary-fixed-variant": "#00522f",
-                "surface-container-low": "#1c1b1b",
-                "on-surface": "#e5e2e1",
+                "surface-container-low": "#1c6b45",
+                "on-surface": "#2b2b2b",
                 "on-primary-fixed": "#002110",
                 "tertiary-fixed-dim": "#e3b5ff",
                 "outline": "#89938a",
-                "background": "#131313",
+                "background": "#f6deac",
                 "secondary-container": "#a59021",
                 "error-container": "#93000a",
                 "inverse-surface": "#e5e2e1",
-                "on-surface-variant": "#bfc9bf",
+                "on-surface-variant": "#5b5b5b",
                 "surface-container-highest": "#353534",
                 "surface-container-high": "#2a2a2a",
                 "inverse-primary": "#1b6b44",
@@ -33,30 +33,30 @@
                 "on-primary-container": "#9eecba",
                 "inverse-on-surface": "#313030",
                 "on-tertiary": "#4d007a",
-                "surface-container": "#201f1f",
-                "surface": "#131313",
-                "on-primary": "#00391f",
-                "on-background": "#e5e2e1",
+                "surface-container": "#dce6f7",
+                "surface": "#f6deac",
+                "on-primary": "#ffffff",
+                "on-background": "#1c6b45",
                 "secondary-fixed-dim": "#dec653",
                 "on-tertiary-fixed": "#2f004c",
-                "surface-variant": "#353534",
+                "surface-variant": "#154c32",
                 "error": "#ffb4ab",
                 "surface-dim": "#131313",
-                "secondary": "#dec653",
+                "secondary": "#d1a53d",
                 "primary-fixed-dim": "#8ad7a6",
                 "on-secondary-fixed-variant": "#524600",
                 "primary-fixed": "#a5f4c1",
                 "surface-tint": "#8ad7a6",
                 "tertiary": "#e3b5ff",
                 "on-error-container": "#ffdad6",
-                "primary-container": "#1d6d45",
-                "primary": "#8ad7a6",
+                "primary-container": "#1c6b45",
+                "primary": "#154c32",
                 "on-tertiary-fixed-variant": "#6b16a1",
                 "surface-bright": "#393939",
                 "on-secondary": "#393000",
                 "tertiary-container": "#8639bc",
                 "on-secondary-fixed": "#211b00",
-                "surface-container-lowest": "#0e0e0e",
+                "surface-container-lowest": "#f1d89c",
                 "on-tertiary-container": "#efd0ff",
                 "on-secondary-container": "#312900"
         },
@@ -76,22 +76,22 @@
                 "margin-desktop": "64px"
         },
         "fontFamily": {
-                "headline-lg-mobile": ["Anton"],
-                "headline-lg": ["Anton"],
+                "headline-lg-mobile": ["Archivo Narrow", "sans-serif"],
+                "headline-lg": ["Archivo Narrow", "sans-serif"],
                 "body-lg": ["Hanken Grotesk"],
-                "display-lg": ["Anton"],
+                "display-lg": ["Archivo Narrow", "sans-serif"],
                 "body-md": ["Hanken Grotesk"],
                 "label-sm": ["JetBrains Mono"],
-                "headline-md": ["Anton"]
+                "headline-md": ["Archivo Narrow", "sans-serif"]
         },
         "fontSize": {
-                "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "fontWeight": "400" }],
-                "headline-lg": ["48px", { "lineHeight": "1.1", "fontWeight": "400" }],
+                "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "fontWeight": "600" }],
+                "headline-lg": ["44px", { "lineHeight": "1.1", "fontWeight": "600" }],
                 "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
-                "display-lg": ["80px", { "lineHeight": "1.0", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                "display-lg": ["72px", { "lineHeight": "1.0", "letterSpacing": "-0.01em", "fontWeight": "600" }],
                 "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
                 "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "500" }],
-                "headline-md": ["24px", { "lineHeight": "1.2", "fontWeight": "400" }]
+                "headline-md": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }]
         }
 },
     },
@@ -117,23 +117,21 @@
 </head>
 <body>
 <!-- TopAppBar -->
-<header class="bg-surface border-b-4 border-surface-variant flex justify-between items-center w-full px-gutter py-stack-md shrink-0">
+<header class="bg-surface border-b border-surface-variant/30 grid grid-cols-3 items-center w-full px-gutter py-stack-md shrink-0">
 <div><img src="/grow%20c.png" alt="Grow C" class="h-12 object-contain"/></div>
-<div class="flex items-center gap-stack-md">
-<span class="font-headline-lg text-headline-lg text-primary">ORDER STATUS</span>
-<div class="flex gap-stack-sm text-on-surface-variant">
+<span class="font-headline-lg text-headline-lg text-primary text-center">ORDER MONITORING</span>
+<div class="flex items-center justify-end gap-stack-sm text-on-surface-variant">
 <a class="material-symbols-outlined" href="/admin.html" style="font-variation-settings: 'FILL' 0; text-decoration: none;" title="Admin panel">settings</a>
 <span class="material-symbols-outlined cursor-pointer" id="fullscreen-btn" style="font-variation-settings: 'FILL' 0;" title="Fullscreen">fullscreen</span>
-</div>
 </div>
 </header>
 <!-- Main Content Canvas -->
 <main class="flex-1 flex w-full p-gutter gap-gutter h-full overflow-hidden mb-12">
 <!-- Preparing Section (Left Column) -->
-<section class="w-1/2 bg-surface-container-low flex flex-col border-4 border-outline-variant rounded-xl overflow-hidden">
-<div class="bg-surface-variant p-stack-md border-b-4 border-outline-variant">
-<h2 class="font-headline-lg text-headline-lg text-on-surface text-center uppercase">Pesanan Disiapkan</h2>
-<div class="font-label-sm text-label-sm text-on-surface-variant text-center mt-stack-sm uppercase tracking-widest">SEDANG DISIAPKAN</div>
+<section class="w-1/2 bg-surface-container-low flex flex-col border border-outline-variant/40 rounded-xl overflow-hidden">
+<div class="bg-surface-variant p-stack-md border-b border-outline-variant/40">
+<h2 class="font-headline-lg text-headline-lg text-white text-center uppercase">Preparing Your Order</h2>
+<div class="font-label-sm text-label-sm text-white/70 text-center mt-stack-sm uppercase tracking-widest">SEDANG DISIAPKAN</div>
 </div>
 <div class="p-stack-lg flex-1 overflow-y-auto">
 <div class="grid grid-cols-2 gap-stack-lg" id="preparing-grid"></div>
@@ -142,15 +140,15 @@
 <!-- Right Column -->
 <div class="w-1/2 flex flex-col gap-gutter">
 <!-- Ready Section (Top Right) -->
-<section class="flex-1 bg-primary-container flex flex-col border-4 border-primary rounded-xl overflow-hidden">
-<div class="bg-primary p-stack-md border-b-4 border-on-primary">
-<h2 class="font-headline-lg text-headline-lg text-on-primary text-center uppercase">Pesanan Siap Diambil</h2>
+<section class="flex-1 bg-primary-container flex flex-col border border-primary/40 rounded-xl overflow-hidden">
+<div class="bg-primary p-stack-md border-b border-on-primary/30">
+<h2 class="font-headline-lg text-headline-lg text-on-primary text-center uppercase">Order Ready for Pickup</h2>
 <div class="font-label-sm text-label-sm text-on-primary text-center mt-stack-sm uppercase tracking-widest">SUDAH BISA DIAMBIL</div>
 </div>
 <div class="p-stack-lg flex-1 flex justify-center items-center gap-stack-lg flex-wrap overflow-y-auto" id="ready-grid"></div>
 </section>
 <!-- Video Loop Section (Bottom Right) -->
-<section class="flex-1 bg-surface-container flex flex-col items-center justify-center border-4 border-surface-variant rounded-xl overflow-hidden relative">
+<section class="flex-1 bg-surface-container flex flex-col items-center justify-center border border-surface-variant/30 rounded-xl overflow-hidden relative">
 <video id="video-loop" class="absolute inset-0 w-full h-full object-cover hidden" autoplay playsinline></video>
 <div id="video-placeholder" class="z-10 flex flex-col items-center gap-stack-md text-on-surface-variant">
 <span class="material-symbols-outlined text-[64px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
@@ -164,11 +162,11 @@
 </div>
 </main>
 <!-- Footer -->
-<footer class="fixed bottom-0 w-full flex justify-between items-center px-gutter py-base bg-surface-container-lowest z-10 shrink-0 border-t-2 border-surface-variant">
-<div class="font-label-sm text-label-sm text-secondary uppercase tracking-widest" id="system-status">
+<footer class="fixed bottom-0 w-full flex justify-between items-center px-gutter py-base bg-surface-container-lowest z-10 shrink-0 border-t border-surface-variant/30">
+<div class="font-label-sm text-label-sm text-on-background uppercase tracking-widest" id="system-status">
             SYSTEM STATUS: OPTIMAL | STATION ID: FOH-01
         </div>
-<div class="font-label-sm text-label-sm text-secondary uppercase tracking-widest" id="clock">
+<div class="font-label-sm text-label-sm text-on-background uppercase tracking-widest" id="clock">
             --:--:--
         </div>
 </footer>
@@ -230,14 +228,14 @@
 
         function preparingCard(order) {
             const div = document.createElement('div');
-            div.className = 'font-display-lg text-display-lg text-on-surface text-center py-stack-sm bg-surface border-2 border-outline-variant rounded';
+            div.className = 'font-display-lg text-display-lg text-neutral-800 text-center py-stack-sm bg-white border-2 border-white/0 rounded-lg shadow-sm';
             div.textContent = order.number;
             return div;
         }
 
         function readyCard(order, isNew) {
             const div = document.createElement('div');
-            div.className = 'font-[Anton] text-[120px] leading-[1] text-secondary text-center px-4' + (isNew ? ' blinking' : '');
+            div.className = "font-['Archivo_Narrow'] font-semibold text-[110px] leading-[1] text-secondary text-center px-4" + (isNew ? ' blinking' : '');
             div.textContent = order.number;
             return div;
         }
@@ -290,8 +288,14 @@
                 preparing.forEach((o) => preparingGrid.appendChild(preparingCard(o)));
 
                 const currentReadyIds = new Set(ready.map((o) => o.id));
+
+                // Only show the 3 most recently ready orders on screen; older
+                // ones roll off automatically as new ones come in (orders
+                // are already sorted newest-first by the API).
+                const READY_DISPLAY_LIMIT = 3;
+                const readyToShow = ready.slice(0, READY_DISPLAY_LIMIT);
                 readyGrid.innerHTML = '';
-                ready.forEach((o) => {
+                readyToShow.forEach((o) => {
                     const isNew = !lastReadyIds.has(o.id) && !firstPoll;
                     readyGrid.appendChild(readyCard(o, isNew));
                 });
