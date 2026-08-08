@@ -33,14 +33,11 @@ function erpAuthHeaders() {
 }
 
 function todayDateStr() {
-  // Use the server's local date, not UTC — ERPNext posting_date is recorded
-  // in local business time, and UTC lags behind WIB by 7 hours, which was
-  // causing same-day orders to be filtered out near midnight.
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  // Explicitly compute "today" in WIB (Asia/Jakarta), independent of the
+  // server OS timezone. The server this runs on is set to UTC, so relying
+  // on the OS local date (getFullYear/getMonth/getDate) silently falls back
+  // to UTC behavior and still misses same-day WIB orders near midnight.
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
 }
 
 // Last 3 digits of the transaction number, e.g. "SINV-2026-00123" -> "123"
