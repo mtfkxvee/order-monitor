@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html class="dark" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Monitor - Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = { darkMode: "class" };
+</script>
+<style>
+  body { background:#131313; color:#e5e2e1; font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body class="dark min-h-screen p-6">
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Order Monitor - Admin</h1>
+    <a href="/" class="text-emerald-400 underline">&larr; Lihat Monitor</a>
+  </div>
+  <p class="text-sm text-neutral-400">
+    Data diambil langsung dari ERPNext (doctype "Sales Order Tracking"), hari ini saja.
+    Ubah status di sini akan menulis balik ke ERPNext. Alur status: Order Placed &rarr; On Progress &rarr; Complete.
+  </p>
+
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-neutral-300">Order Placed / On Progress (Disiapkan)</h2>
+    <ul id="preparing-list" class="space-y-2"></ul>
+  </section>
+
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-emerald-400">Complete (Siap Diambil)</h2>
+    <ul id="ready-list" class="space-y-2"></ul>
+  </section>
+</div>
+
+<script>
+  const preparingList = document.getElementById('preparing-list');
+  const readyList = document.getElementById('ready-list');
+
+  const STATUS_BADGE = {
+    'Order Placed': 'bg-neutral-600',
+    'On Progress': 'bg-amber-600',
+    'Complete': 'bg-emerald-600',
+  };
+
+  function itemsList(items) {
+    const ul = document.createElement('ul');
+    ul.className = 'mt-2 text-sm text-neutral-300 space-y-0.5';
+    if (!items || !items.length) {
+      const li = document.createElement('li');
+      li.className = 'text-neutral-500 italic';
+      li.textContent = 'Tidak ada item';
+      ul.appendChild(li);
+      return ul;
+    }
+    items.forEach((item) => {
+      const li = document.createElement('li');
+      li.className = 'flex justify-between gap-4';
+      const name = document.createElement('span');
+      name.textContent = item.itemName || item.itemCode;
+      const qty = document.createElement('span');
+      qty.className = 'font-mono text-neutral-400';
+      qty.textContent = 'x' + item.qty;
+      li.appendChild(name);
+      li.appendChild(qty);
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  function row(order, actions) {
+    const li = document.createElement('li');
+    li.className = 'bg-neutral-800 rounded px-3 py-2';
+
+    const top = document.createElement('div');
+    top.className = 'flex items-center justify-between';
+
+    const labelWrap = document.createElement('div');
+    const number = document.createElement('span');
+    number.className = 'font-mono text-lg mr-3';
+    number.textContent = order.number;
+    const full = document.createElement('span');
+    full.className = 'text-neutral-400 text-sm';
+    full.textContent = order.fullNumber + (order.customer ? ' · ' + order.customer : '');
+    const badge = document.createElement('span');
+    badge.className = 'ml-3 px-2 py-0.5 rounded text-xs uppercase ' + (STATUS_BADGE[order.erpStatus] || 'bg-neutral-600');
+    badge.textContent = order.erpStatus;
+    labelWrap.appendChild(number);
+    labelWrap.appendChild(full);
+    labelWrap.appendChild(badge);
+    top.appendChild(labelWrap);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'flex gap-2';
+    actions.forEach(({ text, className, onClick }) => {
+      const btn = document.createElement('button');
+      btn.textContent = text;
+      btn.className = 'px-3 py-1 rounded text-sm ' + className;
+      btn.onclick = onClick;
+      actionsDiv.appendChild(btn);
+    });
+    top.appendChild(actionsDiv);
+
+    li.appendChild(top);
+    li.appendChild(itemsList(order.items));
+    return li;
+  }
+
+  async function setErpStatus(id, erpStatus) {
+    await fetch('/api/orders/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ erpStatus }),
+    });
+    load();
+  }
+
+  async function load() {
+    const res = await fetch('/api/orders?include=items');
+    const orders = await res.json();
+
+    preparingList.innerHTML = '';
+    orders.filter((o) => o.status === 'preparing').forEach((o) => {
+      // Strict flow: Order Placed -> On Progress -> Complete, one step at a time.
+      const actions = o.erpStatus === 'Order Placed'
+        ? [{ text: 'On Progress', className: 'bg-amber-600 hover:bg-amber-500', onClick: () => setErpStatus(o.id, 'On Progress') }]
+        : [{ text: 'Complete', className: 'bg-emerald-600 hover:bg-emerald-500', onClick: () => setErpStatus(o.id, 'Complete') }];
+      preparingList.appendChild(row(o, actions));
+    });
+
+    readyList.innerHTML = '';
+    orders.filter((o) => o.status === 'ready').forEach((o) => {
+      readyList.appendChild(row(o, [
+        { text: 'Kembalikan ke Proses', className: 'bg-neutral-600 hover:bg-neutral-500', onClick: () => setErpStatus(o.id, 'On Progress') },
+      ]));
+    });
+  }
+
+  load();
+  setInterval(load, 3000);
+</script>
+</body></html>
