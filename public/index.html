@@ -163,10 +163,10 @@
 </main>
 <!-- Footer -->
 <footer class="fixed bottom-0 w-full flex justify-between items-center px-gutter py-base bg-surface-container-lowest z-10 shrink-0 border-t border-surface-variant/30">
-<div class="font-label-sm text-label-sm text-on-background uppercase tracking-widest" id="system-status">
-            SYSTEM STATUS: OPTIMAL | STATION ID: FOH-01
+<div class="font-label-sm text-base text-on-background uppercase tracking-wide" id="system-status">
+            X-SHA GROW | Share Your Moment and Follow US on IG : xshagrow or xsha_id
         </div>
-<div class="font-label-sm text-label-sm text-on-background uppercase tracking-widest" id="clock">
+<div class="font-label-sm text-xl text-on-background uppercase tracking-widest" id="clock">
             --:--:--
         </div>
 </footer>
@@ -199,6 +199,7 @@
         const preparingGrid = document.getElementById('preparing-grid');
         const readyGrid = document.getElementById('ready-grid');
         const systemStatus = document.getElementById('system-status');
+        const systemStatusDefaultText = systemStatus.textContent;
         const POLL_MS = 3000;
 
         // Track which orders have already been announced, persisted across
@@ -318,9 +319,11 @@
                 }
                 firstPoll = false;
 
-                systemStatus.textContent = 'SYSTEM STATUS: OPTIMAL | STATION ID: FOH-01';
+                systemStatus.textContent = systemStatusDefaultText;
+                systemStatus.classList.remove('text-red-400');
             } catch (err) {
                 systemStatus.textContent = 'SYSTEM STATUS: OFFLINE | RETRYING...';
+                systemStatus.classList.add('text-red-400');
             }
         }
 
