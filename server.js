@@ -40,15 +40,38 @@ function todayDateStr() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
 }
 
-// Last 3 digits of the transaction number, e.g. "SINV-2026-00123" -> "123"
+// Fallback only: last 3 digits of the transaction number, e.g.
+// "SINV-2026-00123" -> "123". Used if a Sales Invoice has no order_number set.
 function lastThreeDigits(name) {
   const digits = (name || '').replace(/\D/g, '');
   return digits.slice(-3).padStart(3, '0');
 }
 
+// The tracking doc is autonamed from sales_invoice, so doc.name IS the
+// Sales Invoice name. Bulk-fetch order_number (a custom field on Sales
+// Invoice) for all of them in one call instead of one request per order.
+async function fetchOrderNumbers(salesInvoiceNames) {
+  if (!salesInvoiceNames.length) return {};
+  const filters = JSON.stringify([['name', 'in', salesInvoiceNames]]);
+  const fields = JSON.stringify(['name', 'order_number']);
+  const url = `${ERPNEXT_URL}/api/resource/Sales%20Invoice` +
+    `?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}&limit_page_length=0`;
+
+  const res = await fetch(url, { headers: erpAuthHeaders() });
+  if (!res.ok) {
+    throw new Error(`ERPNext error ${res.status}: ${await res.text()}`);
+  }
+  const body = await res.json();
+  const map = {};
+  for (const doc of body.data || []) {
+    map[doc.name] = doc.order_number;
+  }
+  return map;
+}
+
 async function fetchTrackedOrders() {
   const filters = JSON.stringify([['posting_date', '=', todayDateStr()]]);
-  const fields = JSON.stringify(['name', 'sales_invoice', 'status', 'customer', 'posting_date', 'modified']);
+  const fields = JSON.stringify(['name', 'sales_invoice', 'status', 'customer', 'posting_date', 'modified', 'remarks']);
   const url = `${ERPNEXT_URL}/api/resource/${encodeURIComponent(DOCTYPE)}` +
     `?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}` +
     `&order_by=${encodeURIComponent('modified desc')}&limit_page_length=0`;
@@ -58,13 +81,23 @@ async function fetchTrackedOrders() {
     throw new Error(`ERPNext error ${res.status}: ${await res.text()}`);
   }
   const body = await res.json();
-  return (body.data || []).map((doc) => ({
+  const docs = body.data || [];
+
+  let orderNumbers = {};
+  try {
+    orderNumbers = await fetchOrderNumbers(docs.map((doc) => doc.name));
+  } catch (err) {
+    console.error('Failed to fetch order_number from Sales Invoice:', err.message);
+  }
+
+  return docs.map((doc) => ({
     id: doc.name,
-    number: lastThreeDigits(doc.name),
+    number: orderNumbers[doc.name] != null ? String(orderNumbers[doc.name]) : lastThreeDigits(doc.name),
     fullNumber: doc.name,
     status: STATUS_MAP[doc.status] || 'preparing',
     erpStatus: doc.status,
     customer: doc.customer,
+    remarks: doc.remarks || '',
     updatedAt: doc.modified,
   }));
 }
@@ -86,12 +119,12 @@ async function fetchInvoiceItems(salesInvoiceName) {
   }));
 }
 
-async function updateOrderStatus(id, erpStatus) {
+async function updateOrder(id, updates) {
   const url = `${ERPNEXT_URL}/api/resource/${encodeURIComponent(DOCTYPE)}/${encodeURIComponent(id)}`;
   const res = await fetch(url, {
     method: 'PUT',
     headers: erpAuthHeaders(),
-    body: JSON.stringify({ status: erpStatus }),
+    body: JSON.stringify(updates),
   });
   if (!res.ok) {
     throw new Error(`ERPNext error ${res.status}: ${await res.text()}`);
@@ -236,16 +269,28 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Update a tracking record's ERPNext status directly
-// body: { erpStatus: "Order Placed" | "On Progress" | "Complete" }
+// Update a tracking record's ERPNext status and/or remarks
+// body: { erpStatus?: "Order Placed" | "On Progress" | "Complete", remarks?: string }
 app.patch('/api/orders/:id', async (req, res) => {
-  const { erpStatus } = req.body;
-  if (!Object.keys(STATUS_MAP).includes(erpStatus)) {
-    return res.status(400).json({ error: 'invalid erpStatus' });
+  const { erpStatus, remarks } = req.body;
+  const updates = {};
+
+  if (erpStatus !== undefined) {
+    if (!Object.keys(STATUS_MAP).includes(erpStatus)) {
+      return res.status(400).json({ error: 'invalid erpStatus' });
+    }
+    updates.status = erpStatus;
   }
+  if (remarks !== undefined) {
+    updates.remarks = remarks;
+  }
+  if (!Object.keys(updates).length) {
+    return res.status(400).json({ error: 'nothing to update' });
+  }
+
   try {
-    await updateOrderStatus(req.params.id, erpStatus);
-    res.json({ id: req.params.id, erpStatus });
+    await updateOrder(req.params.id, updates);
+    res.json({ id: req.params.id, ...updates });
   } catch (err) {
     console.error(err);
     res.status(502).json({ error: 'failed to update order in ERPNext' });

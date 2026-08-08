@@ -69,22 +69,50 @@
     return ul;
   }
 
+  // Paused while a remarks input is focused, so an auto-refresh never yanks
+  // text out from under someone mid-typing.
+  let isEditingRemarks = false;
+
+  function remarksField(order) {
+    const wrap = document.createElement('div');
+    wrap.className = 'mt-3 flex gap-2 items-center';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = order.remarks || '';
+    input.placeholder = 'Catatan / remark...';
+    input.className = 'flex-1 rounded-lg px-4 py-3 text-base bg-neutral-700 text-white placeholder-neutral-400 border border-neutral-600 focus:border-emerald-500 focus:outline-none';
+
+    input.addEventListener('focus', () => { isEditingRemarks = true; });
+    input.addEventListener('blur', () => {
+      isEditingRemarks = false;
+      saveRemarks(order.id, input.value);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') input.blur();
+    });
+
+    wrap.appendChild(input);
+    return wrap;
+  }
+
   function row(order, actions) {
     const li = document.createElement('li');
-    li.className = 'bg-neutral-800 rounded px-3 py-2';
+    li.className = 'bg-neutral-800 rounded-xl px-4 py-4';
 
     const top = document.createElement('div');
-    top.className = 'flex items-center justify-between';
+    top.className = 'flex items-center justify-between flex-wrap gap-3';
 
     const labelWrap = document.createElement('div');
+    labelWrap.className = 'flex items-center flex-wrap gap-2';
     const number = document.createElement('span');
-    number.className = 'font-mono text-lg mr-3';
+    number.className = 'font-mono text-2xl font-bold mr-2';
     number.textContent = order.number;
     const full = document.createElement('span');
     full.className = 'text-neutral-400 text-sm';
-    full.textContent = order.fullNumber + (order.customer ? ' · ' + order.customer : '');
+    full.textContent = order.fullNumber;
     const badge = document.createElement('span');
-    badge.className = 'ml-3 px-2 py-0.5 rounded text-xs uppercase ' + (STATUS_BADGE[order.erpStatus] || 'bg-neutral-600');
+    badge.className = 'px-2 py-0.5 rounded text-xs uppercase ' + (STATUS_BADGE[order.erpStatus] || 'bg-neutral-600');
     badge.textContent = order.erpStatus;
     labelWrap.appendChild(number);
     labelWrap.appendChild(full);
@@ -92,11 +120,11 @@
     top.appendChild(labelWrap);
 
     const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'flex gap-2';
+    actionsDiv.className = 'flex gap-3';
     actions.forEach(({ text, className, onClick }) => {
       const btn = document.createElement('button');
       btn.textContent = text;
-      btn.className = 'px-3 py-1 rounded text-sm ' + className;
+      btn.className = 'px-6 py-3 rounded-lg text-base font-semibold active:scale-95 transition-transform ' + className;
       btn.onclick = onClick;
       actionsDiv.appendChild(btn);
     });
@@ -104,6 +132,7 @@
 
     li.appendChild(top);
     li.appendChild(itemsList(order.items));
+    li.appendChild(remarksField(order));
     return li;
   }
 
@@ -116,7 +145,17 @@
     load();
   }
 
+  async function saveRemarks(id, remarks) {
+    await fetch('/api/orders/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remarks }),
+    });
+  }
+
   async function load() {
+    if (isEditingRemarks) return;
+
     const res = await fetch('/api/orders?include=items');
     const orders = await res.json();
 
