@@ -33,7 +33,14 @@ function erpAuthHeaders() {
 }
 
 function todayDateStr() {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  // Use the server's local date, not UTC — ERPNext posting_date is recorded
+  // in local business time, and UTC lags behind WIB by 7 hours, which was
+  // causing same-day orders to be filtered out near midnight.
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // Last 3 digits of the transaction number, e.g. "SINV-2026-00123" -> "123"
