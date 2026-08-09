@@ -43,20 +43,32 @@ function todayDateStr() {
 // The tracking doc is autonamed from sales_invoice, so doc.name IS the
 // Sales Invoice name. Bulk-fetch order_number (a custom field on Sales
 // Invoice) for all of them in one call instead of one request per order.
+//
+// This uses frappe.client.get_list over POST (args in the body) rather than
+// the /api/resource GET+querystring form used elsewhere: on a busy day the
+// list of invoice names is long enough that it blew past nginx's
+// large_client_header_buffers limit (request line > 4094 bytes), so every
+// request failed with a 400 regardless of how many invoices were on a page.
 async function fetchOrderNumbers(salesInvoiceNames) {
   if (!salesInvoiceNames.length) return {};
-  const filters = JSON.stringify([['name', 'in', salesInvoiceNames]]);
-  const fields = JSON.stringify(['name', 'order_number']);
-  const url = `${ERPNEXT_URL}/api/resource/Sales%20Invoice` +
-    `?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}&limit_page_length=0`;
+  const url = `${ERPNEXT_URL}/api/method/frappe.client.get_list`;
 
-  const res = await fetch(url, { headers: erpAuthHeaders() });
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: erpAuthHeaders(),
+    body: JSON.stringify({
+      doctype: 'Sales Invoice',
+      filters: { name: ['in', salesInvoiceNames] },
+      fields: ['name', 'order_number'],
+      limit_page_length: 0,
+    }),
+  });
   if (!res.ok) {
     throw new Error(`ERPNext error ${res.status}: ${await res.text()}`);
   }
   const body = await res.json();
   const map = {};
-  for (const doc of body.data || []) {
+  for (const doc of body.message || []) {
     map[doc.name] = doc.order_number;
   }
   return map;
