@@ -40,13 +40,6 @@ function todayDateStr() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
 }
 
-// Fallback only: last 3 digits of the transaction number, e.g.
-// "SINV-2026-00123" -> "123". Used if a Sales Invoice has no order_number set.
-function lastThreeDigits(name) {
-  const digits = (name || '').replace(/\D/g, '');
-  return digits.slice(-3).padStart(3, '0');
-}
-
 // The tracking doc is autonamed from sales_invoice, so doc.name IS the
 // Sales Invoice name. Bulk-fetch order_number (a custom field on Sales
 // Invoice) for all of them in one call instead of one request per order.
@@ -83,16 +76,14 @@ async function fetchTrackedOrders() {
   const body = await res.json();
   const docs = body.data || [];
 
-  let orderNumbers = {};
-  try {
-    orderNumbers = await fetchOrderNumbers(docs.map((doc) => doc.name));
-  } catch (err) {
-    console.error('Failed to fetch order_number from Sales Invoice:', err.message);
-  }
+  // No fallback to any transaction-derived number here on purpose: if this
+  // fails (e.g. ERPNext is flaky), the whole request fails and the monitor
+  // shows its offline state, rather than silently displaying wrong numbers.
+  const orderNumbers = await fetchOrderNumbers(docs.map((doc) => doc.name));
 
   return docs.map((doc) => ({
     id: doc.name,
-    number: orderNumbers[doc.name] != null ? String(orderNumbers[doc.name]) : lastThreeDigits(doc.name),
+    number: orderNumbers[doc.name] != null ? String(orderNumbers[doc.name]) : '?',
     fullNumber: doc.name,
     status: STATUS_MAP[doc.status] || 'preparing',
     erpStatus: doc.status,
